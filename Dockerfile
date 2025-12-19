@@ -12,11 +12,12 @@ COPY src /home/user/text2video
 
 RUN apt update && apt install -y ffmpeg
 RUN cd /home/user && git clone https://github.com/HabanaAI/optimum-habana-fork.git -b aice/v1.22.0
+RUN cd /home/user && git clone https://github.com/opea-project/GenAIComps.git
 RUN chown -R user /home/user/text2video
 
 # Set environment variables
 ENV LANG=en_US.UTF-8
-ENV PYTHONPATH=/home/user/text2video:/usr/lib/habanalabs/:/home/user/optimum-habana:/home/user/optimum-habana-fork/examples/InfiniteTalk/infinitetalk/
+ENV PYTHONPATH=/home/user/text2video:/usr/lib/habanalabs/:/home/user/optimum-habana-fork/examples/InfiniteTalk/infinitetalk/:/home/user/GenAIComps/
 
 ARG uvpip='uv pip install --system --no-cache-dir'
 RUN pip install --no-cache-dir --upgrade pip setuptools uv && \

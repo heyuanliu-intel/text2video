@@ -18,7 +18,7 @@ from comps import (
     register_statistics,
     statistics_dict,
 )
-from component import Text2VideoInput, Text2VideoOutput, OpeaText2Video, ServiceType
+from component import Text2VideoInput, Text2VideoOutput, ServiceType, OpeaText2Video
 
 
 # Initialize logger and component loader
