@@ -307,6 +307,8 @@ async def get_video_content(video_id: str):
             else:
                 error_content = {"error": {"message": f"Video file for id {video_id} not found.", "code": "404"}}
                 return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=error_content)
+        else:
+            return res
     except Exception as e:
         error_content = {"error": {"message": f"Internal server error: {e}", "code": "500"}}
         return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=error_content)
