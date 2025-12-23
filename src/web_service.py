@@ -6,6 +6,7 @@ import os
 import time
 import fcntl
 import shutil
+import math
 
 from fastapi import Depends, Request, status
 from fastapi.responses import FileResponse, JSONResponse
@@ -79,12 +80,17 @@ async def resolve_request(request: Request):
 
 
 def calculate_progress(job_info):
-    estimated_time = int(job_info[4]) if int(job_info[9]) <= 10 else int(job_info[4]) * 3
+    estimated_time = estimate_queue_time(int(job_info[4]), int(job_info[9]))
     start_time = int(job_info[15])
     elapsed_time = int(time.time()) - start_time
     progress = int(min(int((elapsed_time / (estimated_time * 60)) * 100), 99))
     left_time = int(max(1, int(estimated_time - (elapsed_time / 60))))
     return progress, left_time
+
+
+def estimate_queue_time(seconds, steps):
+    steps = max(steps, 1)
+    return math.ceil(seconds * 1.16 * steps / 20) if seconds <= 10 else math.ceil(int(seconds * steps / 20)) if seconds <= 15 else math.ceil(int(seconds * 0.83 * steps / 20))
 
 
 def generate_response(video_id) -> Text2VideoOutput:
@@ -100,14 +106,18 @@ def generate_response(video_id) -> Text2VideoOutput:
                 lines = f.readlines()
                 for line in lines:
                     job = line.strip().split(sep)
+
+                    if len(job) < 17:
+                        continue
+
                     if job[0] == video_id:
                         job_info = job
-                        queue_estimated_time_in_minutes += int(job[4]) if int(job[9]) <= 10 else int(job[4]) * 3
+                        queue_estimated_time_in_minutes += estimate_queue_time(int(job[4]), int(job[9]))
                         break
 
                     if job[1] == "queued":
                         queue_length += 1
-                        queue_estimated_time_in_minutes += int(job[4]) if int(job[9]) <= 10 else int(job[4]) * 3
+                        queue_estimated_time_in_minutes += estimate_queue_time(int(job[4]), int(job[9]))
 
                     if job[1] == "processing":
                         progress, left_time = calculate_progress(job)
@@ -140,7 +150,7 @@ def generate_response(video_id) -> Text2VideoOutput:
                     created_at=int(job_info[2]),
                     seconds=job_info[4],
                     duration=job_info[14],
-                    estimated_time=0 if job_info[1] == "completed" else queue_estimated_time_in_minutes,
+                    estimated_time=0 if job_info[1] == "completed" else int(queue_estimated_time_in_minutes),
                     queue_length=0 if job_info[1] == "completed" else queue_length,
                     error=job_info[-1] if job_info[1] == "error" else ""
                 )

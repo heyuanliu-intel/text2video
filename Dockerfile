@@ -22,10 +22,8 @@ ENV PYTHONPATH=/home/user/text2video:/usr/lib/habanalabs/:/home/user/optimum-hab
 ARG uvpip='uv pip install --system --no-cache-dir'
 RUN pip install --no-cache-dir --upgrade pip setuptools uv && \
     $uvpip -r /home/user/text2video/requirements.txt && \
+    $uvpip -r /home/user/text2video/requirements-infinitetalk.txt && \
     $uvpip 'git+https://github.com/HabanaAI/optimum-habana-fork.git@aice/v1.22.0'
 
 USER user
 WORKDIR /home/user/text2video
-
-# RUN echo 'nohup python3 opea_text2video_microservice.py > microservice.log 2>&1 && PT_HPU_LAZY_MODE=1 torchrun --nproc_per_node=$RANK text_to_video_generation.py --use_habana --dtype bf16 --device hpu --model_name_or_path $MODEL' >> run.sh
-# CMD ["bash", "run.sh"]
